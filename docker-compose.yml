@@ -1,18 +1,26 @@
 version: '3.3'
 services:
+  eureka-server:
+    image: pkjacob/eureka-server:0.0.1-SNAPSHOT
+    networks:
+      - currency-network
+    ports: 
+      - "8761:8761"
   currency-exchange:
     image: pkjacob/currency-exchange:0.0.1-SNAPSHOT
     networks:
       - currency-network
     depends_on: 
       - mongodb
-    ports: 
-      - "8080:8080"
+      - eureka-server
+    #ports: 
+    #  - "8080:8080"
   currency-conversion:
     ports:
       - "8081:8081"
     depends_on:
       - currency-exchange
+      - eureka-server
     image: pkjacob/currency-conversion:0.0.1-SNAPSHOT
     environment: 
       CURRENCY_EXCHANGE_URI: http://currency-exchange:8080
