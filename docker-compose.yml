@@ -1,5 +1,24 @@
 version: '3.3'
 services:
+  rabbitmq:
+    image: rabbitmq:3.5.3-management
+    networks:
+      - currency-network
+    ports: 
+      - "5672:5672"
+      - "15672:15672"
+  zipkin-server:
+    container_name: zipkin
+    image: openzipkin/zipkin
+    networks:
+      - currency-network
+    environment:
+      STORAGE_TYPE: mem
+      RABBIT_URI: amqp://guest:guest@rabbitmq:5672
+    ports: 
+      - "9411:9411"
+    depends_on: 
+      - rabbitmq
   zuul-gateway:
     image: pkjacob/zuul-gateway:0.0.1-SNAPSHOT
     networks:
@@ -7,7 +26,11 @@ services:
     ports: 
       - "8766:8765"
     depends_on: 
-      - eureka-server  
+      - eureka-server
+      - rabbitmq
+      - zipkin-server
+    environment:
+      RABBIT_URI: amqp://guest:guest@rabbitmq:5672
   eureka-server:
     image: pkjacob/eureka-server:0.0.1-SNAPSHOT
     networks:
@@ -22,7 +45,11 @@ services:
       - mongodb
       - eureka-server
       - zuul-gateway
-    #ports: 
+      - rabbitmq
+      - zipkin-server
+    environment:
+      RABBIT_URI: amqp://guest:guest@rabbitmq:5672    
+      #ports: 
     #  - "8080:8080"
   currency-conversion:
     ports:
@@ -30,9 +57,13 @@ services:
     depends_on:
       - currency-exchange
       - eureka-server
+      - rabbitmq
+      - zipkin-server
     image: pkjacob/currency-conversion:0.0.1-SNAPSHOT
     networks:
       - currency-network
+    environment:
+      RABBIT_URI: amqp://guest:guest@rabbitmq:5672    
   mongodb:
     image: mongo:latest
     ports:

@@ -7,6 +7,7 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
@@ -18,6 +19,7 @@ import com.pk.currencyexchange.repo.ExchangeRepo;
 
 @Configuration
 @AllArgsConstructor
+@Slf4j
 public class RouteConfig {
 
     private final ExchangeRepo repo;
@@ -32,6 +34,8 @@ public class RouteConfig {
     private Mono<ServerResponse> fetchExchangeRate(ServerRequest req) {
         String from = req.pathVariable("from");
         String to = req.pathVariable("to");
+        log.info("received request From {}, To {}", from, to);
+
         return repo.findByFromAndTo(from, to)
                 .flatMap(rate -> ok().body(Mono.just(rate), ExchangeRate.class))
                 .switchIfEmpty(notFound().build());

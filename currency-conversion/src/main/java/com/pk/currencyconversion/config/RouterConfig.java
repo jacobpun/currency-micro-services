@@ -8,6 +8,7 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import com.pk.currencyconversion.client.CurrencyExchangeResourceProxy;
 import com.pk.currencyconversion.model.CurrencyRate;
@@ -15,6 +16,7 @@ import com.pk.currencyconversion.model.ExchangeRate;
 
 @Configuration
 @AllArgsConstructor
+@Slf4j
 public class RouterConfig {
     private final CurrencyExchangeResourceProxy proxy;
     @Bean
@@ -28,6 +30,8 @@ public class RouterConfig {
         String from = req.pathVariable("from");
         String to = req.pathVariable("to");
         int count = Integer.parseInt(req.pathVariable("count"));
+
+        log.info("received request From {}, To {}, count {}", from, to, count);
 
         ExchangeRate exchangeRate = proxy.fetchExchangeRate(from, to);
         if (exchangeRate == null) {
