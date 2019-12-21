@@ -1,5 +1,14 @@
 version: '3.3'
 services:
+  log-store:
+    image: openzipkin/zipkin-mysql:latest
+    container_name: mysql_log_store
+    ports: 
+      - "3306:3306"
+    networks:
+      - currency-network
+    volumes: 
+      - logs:/var/lib/mysql
   rabbitmq:
     image: rabbitmq:3.5.3-management
     networks:
@@ -13,12 +22,14 @@ services:
     networks:
       - currency-network
     environment:
-      STORAGE_TYPE: mem
+      STORAGE_TYPE: mysql
+      MYSQL_HOST: log-store
       RABBIT_URI: amqp://guest:guest@rabbitmq:5672
     ports: 
       - "9411:9411"
     depends_on: 
       - rabbitmq
+      - log-store
   zuul-gateway:
     image: pkjacob/zuul-gateway:0.0.1-SNAPSHOT
     networks:
@@ -74,5 +85,6 @@ services:
       - db-data:/data/db    
 networks:
   currency-network:
-volumes: 
+volumes:
   db-data:
+  logs:
